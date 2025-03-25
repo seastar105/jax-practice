@@ -1,0 +1,14 @@
+torch
+jax[tpu]
+ipykernel
+jupyter
+optax
+flax
+numpy<2.0
+datasets[audio]
+transformers
+orbax
+matplotlib
+seaborn
+tqdm
+wandb
