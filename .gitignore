@@ -3,3 +3,4 @@ cs336_basics.egg-info
 __pycache__
 wandb
 checkpoints
+.env
