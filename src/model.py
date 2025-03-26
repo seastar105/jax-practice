@@ -57,13 +57,12 @@ class FeedForward(nnx.Module):
 
 def scaled_dot_product_attention(q, k, v, mask: Optional[jnp.array] = None, dropout: Optional[nnx.Dropout] = None):
     # q, k, v: (..., seq_len, dim)
-    # mask logits where mask is False
     scale = 1 / jnp.sqrt(q.shape[-1])
 
     logits = einsum(q, k, "b ... q d, b ... k d -> b ... q k") * scale
     if mask is not None:
         mask_value = -jnp.finfo(logits.dtype).max
-        logits = jnp.where(mask, logits, mask_value)
+        logits = jnp.where(mask, mask_value, logits)
 
     attn = nnx.softmax(logits, axis=-1)
     if dropout is not None:

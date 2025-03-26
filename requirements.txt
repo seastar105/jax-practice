@@ -7,7 +7,7 @@ flax
 numpy<2.0
 datasets[audio]
 transformers
-orbax
+orbax-checkpoint
 matplotlib
 seaborn
 tqdm

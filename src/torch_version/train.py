@@ -8,9 +8,10 @@ from typing import Optional, Union
 import numpy as np
 import torch
 import wandb
-from cs336_basics.model import TransformerLM, cross_entropy_loss
-from cs336_basics.optimizer import AdamW, clip_grad_norm, get_cosine_schedule_lr
 from tqdm.auto import tqdm
+
+from src.torch_version.model import TransformerLM, cross_entropy_loss
+from src.torch_version.optimizer import AdamW, clip_grad_norm, get_cosine_schedule_lr
 
 torch.set_float32_matmul_precision("high")
 torch.backends.cuda.matmul.allow_tf32 = True

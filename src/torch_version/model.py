@@ -4,7 +4,8 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
-from cs336_basics.bbpe import Tokenizer
+
+from src.bbpe import Tokenizer
 
 
 def gelu(x: torch.Tensor):
