@@ -13,6 +13,7 @@ ACTIVATION_MAP = {
 # ff_dropout -> Dropout in FeedForward, fc1 -> act -> dropout -> fc2
 # attention_dropout -> Dropout in Attention, qkv -> attention -> dropout -> out -> proj
 # residual_dropout -> Dropout per sub-block, x -> norm -> attention -> residual + dropout(x) -> norm -> ff -> residual + dropout(x)
+KERNEL_INIT = nnx.initializers.normal(stddev=0.02)
 
 
 class GLUFeedForward(nnx.Module):
@@ -25,10 +26,10 @@ class GLUFeedForward(nnx.Module):
         dropout: float = 0.0,
         use_bias: bool = False,
     ):
-        self.fc1 = nnx.Linear(dim, 2 * intermediate_dim, use_bias=use_bias, rngs=rngs)
+        self.fc1 = nnx.Linear(dim, 2 * intermediate_dim, use_bias=use_bias, rngs=rngs, kernel_init=KERNEL_INIT)
         self.act = ACTIVATION_MAP[activation]
         self.dropout = nnx.Dropout(rate=dropout, rngs=rngs)
-        self.fc2 = nnx.Linear(intermediate_dim, dim, use_bias=use_bias, rngs=rngs)
+        self.fc2 = nnx.Linear(intermediate_dim, dim, use_bias=use_bias, rngs=rngs, kernel_init=KERNEL_INIT)
 
     def __call__(self, x):
         x, gate = jnp.split(self.fc1(x), 2, axis=-1)
@@ -46,10 +47,10 @@ class FeedForward(nnx.Module):
         dropout: float = 0.0,
         use_bias: bool = False,
     ):
-        self.fc1 = nnx.Linear(dim, intermediate_dim, use_bias=use_bias, rngs=rngs)
+        self.fc1 = nnx.Linear(dim, intermediate_dim, use_bias=use_bias, rngs=rngs, kernel_init=KERNEL_INIT)
         self.act = ACTIVATION_MAP[activation]
         self.dropout = nnx.Dropout(rate=dropout, rngs=rngs)
-        self.fc2 = nnx.Linear(intermediate_dim, dim, use_bias=use_bias, rngs=rngs)
+        self.fc2 = nnx.Linear(intermediate_dim, dim, use_bias=use_bias, rngs=rngs, kernel_init=KERNEL_INIT)
 
     def __call__(self, x):
         return self.fc2(self.dropout(self.act(self.fc1(x))))
@@ -76,10 +77,10 @@ class CausalSelfAttention(nnx.Module):
         self.num_heads = num_heads
         self.dim_head = dim // num_heads
 
-        self.q_proj = nnx.Linear(dim, dim, use_bias=use_bias, rngs=rngs)
-        self.k_proj = nnx.Linear(dim, dim, use_bias=use_bias, rngs=rngs)
-        self.v_proj = nnx.Linear(dim, dim, use_bias=use_bias, rngs=rngs)
-        self.out_proj = nnx.Linear(dim, dim, use_bias=use_bias, rngs=rngs)
+        self.q_proj = nnx.Linear(dim, dim, use_bias=use_bias, rngs=rngs, kernel_init=KERNEL_INIT)
+        self.k_proj = nnx.Linear(dim, dim, use_bias=use_bias, rngs=rngs, kernel_init=KERNEL_INIT)
+        self.v_proj = nnx.Linear(dim, dim, use_bias=use_bias, rngs=rngs, kernel_init=KERNEL_INIT)
+        self.out_proj = nnx.Linear(dim, dim, use_bias=use_bias, rngs=rngs, kernel_init=KERNEL_INIT)
 
         self.attn_dropout = nnx.Dropout(rate=dropout, rngs=rngs)
 
@@ -146,9 +147,10 @@ class Transformer(nnx.Module):
         use_bias: bool = False,
         norm_class: str = "rmsnorm",
         use_glu: bool = False,
+        tie_embedding: bool = False,
     ):
-        self.token_emb = nnx.Embed(vocab_size, dim, rngs=rngs)
-        self.pos_emb = nnx.Embed(context_length, dim, rngs=rngs)
+        self.token_emb = nnx.Embed(vocab_size, dim, rngs=rngs, embedding_init=KERNEL_INIT)
+        self.pos_emb = nnx.Embed(context_length, dim, rngs=rngs, embedding_init=KERNEL_INIT)
         self.dropout = nnx.Dropout(rate=residual_dropout, rngs=rngs)
 
         blocks = [
@@ -172,7 +174,11 @@ class Transformer(nnx.Module):
         norm_class = nnx.LayerNorm if norm_class == "layernorm" else nnx.RMSNorm
         self.final_norm = norm_class(dim, rngs=rngs)
 
-        self.lm_head = nnx.Linear(dim, vocab_size, use_bias=use_bias, rngs=rngs)
+        self.tie_embedding = tie_embedding
+        if self.tie_embedding:
+            self.lm_head = None
+        else:
+            self.lm_head = nnx.Linear(dim, vocab_size, use_bias=use_bias, rngs=rngs, kernel_init=KERNEL_INIT)
 
     def __call__(self, x: jnp.array, position_ids: Optional[jnp.array] = None):
         embs = self.token_emb(x)
@@ -182,5 +188,10 @@ class Transformer(nnx.Module):
             position_ids = jnp.arange(x.shape[-1])
         embs = self.dropout(embs + self.pos_emb(position_ids))
         embs = self.blocks(embs)
-        logits = self.lm_head(self.final_norm(embs))
+        embs = self.final_norm(embs)
+
+        if self.tie_embedding:
+            logits = einsum(embs, self.token_emb.embedding, "b t d, v d -> b t v")
+        else:
+            logits = self.lm_head(embs)
         return logits
