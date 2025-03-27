@@ -97,6 +97,7 @@ def train(args):
         norm_class=args.norm_class,
         use_glu=args.use_glu,
         tie_embedding=not args.untie_embedding,
+        use_remat=args.use_remat,
     )
 
     params = nnx.state(model, nnx.Param)
@@ -222,6 +223,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_glu", action="store_true")
     parser.add_argument("--norm_class", type=str, default="layernorm", choices=["rmsnorm", "layernorm"])
     parser.add_argument("--untie_embedding", action="store_true")
+    parser.add_argument("--use_remat", action="store_true")
 
     # Training Parameters
     parser.add_argument("--batch_size", type=int, default=32, help="per device batch size")

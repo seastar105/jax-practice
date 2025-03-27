@@ -148,12 +148,13 @@ class Transformer(nnx.Module):
         norm_class: str = "rmsnorm",
         use_glu: bool = False,
         tie_embedding: bool = False,
+        use_remat: bool = True,
     ):
         self.token_emb = nnx.Embed(vocab_size, dim, rngs=rngs, embedding_init=KERNEL_INIT)
         self.pos_emb = nnx.Embed(context_length, dim, rngs=rngs, embedding_init=KERNEL_INIT)
         self.dropout = nnx.Dropout(rate=residual_dropout, rngs=rngs)
 
-        blocks = [
+        self.blocks = [
             Block(
                 dim,
                 dim_ff,
@@ -169,7 +170,6 @@ class Transformer(nnx.Module):
             )
             for _ in range(num_layers)
         ]
-        self.blocks = nnx.Sequential(*blocks)
 
         norm_class = nnx.LayerNorm if norm_class == "layernorm" else nnx.RMSNorm
         self.final_norm = norm_class(dim, rngs=rngs)
@@ -180,6 +180,8 @@ class Transformer(nnx.Module):
         else:
             self.lm_head = nnx.Linear(dim, vocab_size, use_bias=use_bias, rngs=rngs, kernel_init=KERNEL_INIT)
 
+        self.use_remat = use_remat
+
     def __call__(self, x: jnp.array, position_ids: Optional[jnp.array] = None):
         embs = self.token_emb(x)
         if position_ids is not None:
@@ -187,7 +189,12 @@ class Transformer(nnx.Module):
         else:
             position_ids = jnp.arange(x.shape[-1])
         embs = self.dropout(embs + self.pos_emb(position_ids))
-        embs = self.blocks(embs)
+
+        for block in self.blocks:
+            if self.use_remat:
+                embs = nnx.remat(block.__call__)(embs)
+            else:
+                embs = block(embs)
         embs = self.final_norm(embs)
 
         if self.tie_embedding:
