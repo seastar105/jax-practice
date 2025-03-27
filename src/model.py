@@ -4,6 +4,8 @@ import flax.nnx as nnx
 import jax.numpy as jnp
 from einops import einsum, rearrange
 
+from src.config import TransformerConfig
+
 ACTIVATION_MAP = {
     "relu": nnx.relu,
     "gelu": nnx.gelu,
@@ -105,16 +107,16 @@ class Block(nnx.Module):
         dim_ff: int,
         num_heads: int,
         rngs: nnx.Rngs,
+        ff_class: str = "vanilla",
         ff_activation: str = "gelu",
         ff_dropout: float = 0.0,
         attention_dropout: float = 0.0,
         residual_dropout: float = 0.0,
         use_bias: bool = False,
-        norm_class: str = "rmsnorm",
-        use_glu: bool = False,
+        norm_class: str = "layernorm",
     ):
         norm_class = nnx.LayerNorm if norm_class == "layernorm" else nnx.RMSNorm
-        ff_class = GLUFeedForward if use_glu else FeedForward
+        ff_class = GLUFeedForward if ff_class == "glu" else FeedForward
 
         self.attn_norm = norm_class(dim, rngs=rngs)
         self.attn = CausalSelfAttention(dim, num_heads, rngs, dropout=attention_dropout, use_bias=use_bias)
@@ -133,54 +135,43 @@ class Block(nnx.Module):
 class Transformer(nnx.Module):
     def __init__(
         self,
-        vocab_size: int,
-        num_layers: int,
-        dim: int,
-        dim_ff: int,
-        num_heads: int,
+        config: TransformerConfig,
         rngs: nnx.Rngs,
-        context_length: int,
-        ff_activation: str = "gelu",
-        ff_dropout: float = 0.0,
-        attention_dropout: float = 0.0,
-        residual_dropout: float = 0.0,
-        use_bias: bool = False,
-        norm_class: str = "rmsnorm",
-        use_glu: bool = False,
-        tie_embedding: bool = False,
-        use_remat: bool = True,
     ):
-        self.token_emb = nnx.Embed(vocab_size, dim, rngs=rngs, embedding_init=KERNEL_INIT)
-        self.pos_emb = nnx.Embed(context_length, dim, rngs=rngs, embedding_init=KERNEL_INIT)
-        self.dropout = nnx.Dropout(rate=residual_dropout, rngs=rngs)
+        self.config = config
+        self.token_emb = nnx.Embed(config.vocab_size, config.dim, rngs=rngs, embedding_init=KERNEL_INIT)
+        self.pos_emb = nnx.Embed(config.context_length, config.dim, rngs=rngs, embedding_init=KERNEL_INIT)
+        self.dropout = nnx.Dropout(rate=config.residual_dropout, rngs=rngs)
 
         self.blocks = [
             Block(
-                dim,
-                dim_ff,
-                num_heads,
+                config.dim,
+                config.dim_ff,
+                config.num_heads,
                 rngs,
-                ff_activation,
-                ff_dropout,
-                attention_dropout,
-                residual_dropout,
-                use_bias,
-                norm_class,
-                use_glu,
+                config.ff_class,
+                config.ff_activation,
+                config.ff_dropout,
+                config.attention_dropout,
+                config.residual_dropout,
+                config.use_bias,
+                config.norm_class,
             )
-            for _ in range(num_layers)
+            for _ in range(config.num_layers)
         ]
 
-        norm_class = nnx.LayerNorm if norm_class == "layernorm" else nnx.RMSNorm
-        self.final_norm = norm_class(dim, rngs=rngs)
+        norm_class = nnx.LayerNorm if config.norm_class == "layernorm" else nnx.RMSNorm
+        self.final_norm = norm_class(config.dim, rngs=rngs)
 
-        self.tie_embedding = tie_embedding
+        self.tie_embedding = config.tie_embedding
         if self.tie_embedding:
             self.lm_head = None
         else:
-            self.lm_head = nnx.Linear(dim, vocab_size, use_bias=use_bias, rngs=rngs, kernel_init=KERNEL_INIT)
+            self.lm_head = nnx.Linear(
+                config.dim, config.vocab_size, use_bias=config.use_bias, rngs=rngs, kernel_init=KERNEL_INIT
+            )
 
-        self.use_remat = use_remat
+        self.use_remat = config.use_remat
 
     def __call__(self, x: jnp.array, position_ids: Optional[jnp.array] = None):
         embs = self.token_emb(x)

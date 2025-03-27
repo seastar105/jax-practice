@@ -1,0 +1,35 @@
+{
+    "transformer_config": {
+        "vocab_size": 50304,
+        "num_layers": 12,
+        "dim": 768,
+        "dim_ff": 3072,
+        "num_heads": 12,
+        "context_length": 1024,
+        "ff_class": "vanilla",
+        "ff_activation": "gelu",
+        "ff_dropout": 0.0,
+        "attention_dropout": 0.0,
+        "residual_dropout": 0.0,
+        "use_bias": false,
+        "norm_class": "rmsnorm",
+        "tie_embedding": true,
+        "use_remat": false
+    },
+    "train_config": {
+        "log_interval": 100,
+        "val_interval": 500,
+        "per_device_batch_size": 32,
+        "learning_rate": 0.0006,
+        "beta1": 0.9,
+        "beta2": 0.98,
+        "weight_decay": 0.1,
+        "max_grad_norm": 1.0,
+        "learning_rate_scheduler": "linear_warmup_cosine_decay",
+        "total_steps": 10000,
+        "warmup_steps": 400,
+        "decay_steps": 400,
+        "wandb_project_name": "jax-nanogpt",
+        "wandb_run_name": "rmsnorm"
+    }
+}
