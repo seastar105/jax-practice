@@ -16,7 +16,7 @@
         "norm_class": "rmsnorm",
         "qk_norm": true,
         "tie_embedding": true,
-        "use_remat": false
+        "use_remat": true
     },
     "train_config": {
         "log_interval": 20,
