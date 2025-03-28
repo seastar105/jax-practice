@@ -8,7 +8,7 @@
         "context_length": 1024,
         "pos_emb": "rotary",
         "ff_class": "glu",
-        "ff_activation": "swish",
+        "ff_activation": "silu",
         "ff_dropout": 0.0,
         "attention_dropout": 0.0,
         "residual_dropout": 0.0,

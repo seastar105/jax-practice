@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # llama (SwiGLU, Rotary, RMSNorm)
     llama_cfg = copy.deepcopy(base_cfg)
     llama_cfg.transformer_config.ff_class = "glu"
-    llama_cfg.transformer_config.ff_activation = "swish"
+    llama_cfg.transformer_config.ff_activation = "silu"
     llama_cfg.transformer_config.pos_emb = "rotary"
     llama_cfg.transformer_config.norm_class = "rmsnorm"
     llama_cfg.train_config.wandb_run_name = "llama"
