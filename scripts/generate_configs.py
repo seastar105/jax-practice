@@ -65,4 +65,5 @@ if __name__ == "__main__":
     combined_cfg.transformer_config.qk_norm = True
     combined_cfg.train_config.learning_rate_scheduler = "linear_warmup_stable_decay"
     combined_cfg.train_config.learning_rate *= 3
+    combined_cfg.train_config.wandb_run_name = "combined"
     combined_cfg.to_json("configs/combined.json", indent=4)
