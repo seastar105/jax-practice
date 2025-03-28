@@ -50,6 +50,13 @@ if __name__ == "__main__":
     lr3x_cfg.train_config.wandb_run_name = "lr3x"
     lr3x_cfg.to_json("configs/lr3x.json", indent=4)
 
+    # double batch size
+    double_batch_cfg = copy.deepcopy(base_cfg)
+    double_batch_cfg.train_config.per_device_batch_size *= 2
+    double_batch_cfg.transformer_config.use_remat = True
+    double_batch_cfg.train_config.wandb_run_name = "double_batch"
+    double_batch_cfg.to_json("configs/double_batch.json", indent=4)
+
     # wsd + 3x lr + double head + rms + qk_norm + rotary
     combined_cfg = copy.deepcopy(base_cfg)
     combined_cfg.transformer_config.num_heads //= 2

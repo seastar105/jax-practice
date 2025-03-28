@@ -1,0 +1,38 @@
+{
+    "transformer_config": {
+        "vocab_size": 50304,
+        "num_layers": 12,
+        "dim": 768,
+        "dim_ff": 3072,
+        "num_heads": 12,
+        "context_length": 1024,
+        "pos_emb": "abs",
+        "ff_class": "vanilla",
+        "ff_activation": "gelu",
+        "ff_dropout": 0.0,
+        "attention_dropout": 0.0,
+        "residual_dropout": 0.0,
+        "use_bias": false,
+        "norm_class": "layernorm",
+        "qk_norm": false,
+        "tie_embedding": true,
+        "use_remat": true
+    },
+    "train_config": {
+        "log_interval": 20,
+        "val_interval": 200,
+        "val_tokens": 10485760,
+        "per_device_batch_size": 64,
+        "learning_rate": 0.0006,
+        "beta1": 0.9,
+        "beta2": 0.95,
+        "weight_decay": 0.1,
+        "max_grad_norm": 1.0,
+        "learning_rate_scheduler": "linear_warmup_cosine_decay",
+        "total_steps": 10000,
+        "warmup_steps": 400,
+        "decay_steps": 2000,
+        "wandb_project_name": "jax-nanogpt",
+        "wandb_run_name": "double_batch"
+    }
+}
