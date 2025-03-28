@@ -20,6 +20,15 @@ if __name__ == "__main__":
     glu_cfg.train_config.wandb_run_name = "glu"
     glu_cfg.to_json("configs/glu.json", indent=4)
 
+    # llama (SwiGLU, Rotary, RMSNorm)
+    llama_cfg = copy.deepcopy(base_cfg)
+    llama_cfg.transformer_config.ff_class = "glu"
+    llama_cfg.transformer_config.ff_activation = "swish"
+    llama_cfg.transformer_config.pos_emb = "rotary"
+    llama_cfg.transformer_config.norm_class = "rmsnorm"
+    llama_cfg.train_config.wandb_run_name = "llama"
+    llama_cfg.to_json("configs/llama.json", indent=4)
+
     # qk_norm
     qk_norm_cfg = copy.deepcopy(base_cfg)
     qk_norm_cfg.transformer_config.qk_norm = True
