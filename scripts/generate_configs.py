@@ -89,3 +89,13 @@ if __name__ == "__main__":
     combined_cfg.transformer_config.use_remat = True
     combined_cfg.train_config.wandb_run_name = "combined_double_batch"
     combined_cfg.to_json("configs/combined_double_batch.json", indent=4)
+
+    # wsd + 3x lr + double head + rms + rotary
+    combined_cfg = copy.deepcopy(base_cfg)
+    combined_cfg.transformer_config.num_heads //= 2
+    combined_cfg.transformer_config.pos_emb = "rotary"
+    combined_cfg.transformer_config.norm_class = "rmsnorm"
+    combined_cfg.train_config.learning_rate_scheduler = "linear_warmup_stable_decay"
+    combined_cfg.train_config.learning_rate *= 3
+    combined_cfg.train_config.wandb_run_name = "combined_no_qk"
+    combined_cfg.to_json("configs/combined_no_qk.json", indent=4)
