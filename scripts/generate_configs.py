@@ -76,3 +76,15 @@ if __name__ == "__main__":
     combined_cfg.train_config.learning_rate *= 3
     combined_cfg.train_config.wandb_run_name = "combined_no_rms_no_wsd"
     combined_cfg.to_json("configs/combined_no_rms_no_wsd.json", indent=4)
+
+    # wsd + 3x lr + double head + rms + qk_norm + rotary + double batch
+    combined_cfg = copy.deepcopy(base_cfg)
+    combined_cfg.transformer_config.num_heads //= 2
+    combined_cfg.transformer_config.pos_emb = "rotary"
+    combined_cfg.transformer_config.norm_class = "rmsnorm"
+    combined_cfg.transformer_config.qk_norm = True
+    combined_cfg.train_config.learning_rate_scheduler = "linear_warmup_stable_decay"
+    combined_cfg.train_config.learning_rate *= 3
+    combined_cfg.train_config.per_device_batch_size *= 2
+    combined_cfg.train_config.wandb_run_name = "combined_double_batch"
+    combined_cfg.to_json("configs/combined_double_batch.json", indent=4)
