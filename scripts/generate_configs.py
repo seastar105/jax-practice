@@ -14,6 +14,12 @@ if __name__ == "__main__":
     rmsnorm_cfg.train_config.wandb_run_name = "rmsnorm"
     rmsnorm_cfg.to_json("configs/rmsnorm.json", indent=4)
 
+    # glu
+    glu_cfg = copy.deepcopy(base_cfg)
+    glu_cfg.transformer_config.ff_class = "glu"
+    glu_cfg.train_config.wandb_run_name = "glu"
+    glu_cfg.to_json("configs/glu.json", indent=4)
+
     # qk_norm
     qk_norm_cfg = copy.deepcopy(base_cfg)
     qk_norm_cfg.transformer_config.qk_norm = True
