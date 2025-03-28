@@ -29,6 +29,18 @@ if __name__ == "__main__":
     llama_cfg.train_config.wandb_run_name = "llama"
     llama_cfg.to_json("configs/llama.json", indent=4)
 
+    # llama + double head + wsd + 3x lr
+    llama_cfg = copy.deepcopy(base_cfg)
+    llama_cfg.transformer_config.ff_class = "glu"
+    llama_cfg.transformer_config.ff_activation = "silu"
+    llama_cfg.transformer_config.pos_emb = "rotary"
+    llama_cfg.transformer_config.norm_class = "rmsnorm"
+    llama_cfg.transformer_config.num_heads //= 2
+    llama_cfg.train_config.learning_rate *= 3
+    llama_cfg.train_config.learning_rate_scheduler = "linear_warmup_stable_decay"
+    llama_cfg.train_config.wandb_run_name = "llama_double_head_wsd_3x_lr"
+    llama_cfg.to_json("configs/llama_double_head_wsd_3x_lr.json", indent=4)
+
     # qk_norm
     qk_norm_cfg = copy.deepcopy(base_cfg)
     qk_norm_cfg.transformer_config.qk_norm = True
