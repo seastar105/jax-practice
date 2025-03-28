@@ -23,7 +23,7 @@
         "val_interval": 200,
         "val_tokens": 10485760,
         "per_device_batch_size": 32,
-        "learning_rate": 0.0006,
+        "learning_rate": 0.0018,
         "beta1": 0.9,
         "beta2": 0.95,
         "weight_decay": 0.1,
@@ -33,6 +33,6 @@
         "warmup_steps": 400,
         "decay_steps": 2000,
         "wandb_project_name": "jax-nanogpt",
-        "wandb_run_name": "baseline"
+        "wandb_run_name": "lr3x"
     }
 }

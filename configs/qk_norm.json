@@ -14,7 +14,7 @@
         "residual_dropout": 0.0,
         "use_bias": false,
         "norm_class": "layernorm",
-        "qk_norm": false,
+        "qk_norm": true,
         "tie_embedding": true,
         "use_remat": false
     },
@@ -33,6 +33,6 @@
         "warmup_steps": 400,
         "decay_steps": 2000,
         "wandb_project_name": "jax-nanogpt",
-        "wandb_run_name": "baseline"
+        "wandb_run_name": "qk_norm"
     }
 }

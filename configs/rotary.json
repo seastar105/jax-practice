@@ -6,7 +6,7 @@
         "dim_ff": 3072,
         "num_heads": 12,
         "context_length": 1024,
-        "pos_emb": "abs",
+        "pos_emb": "rotary",
         "ff_class": "vanilla",
         "ff_activation": "gelu",
         "ff_dropout": 0.0,
@@ -33,6 +33,6 @@
         "warmup_steps": 400,
         "decay_steps": 2000,
         "wandb_project_name": "jax-nanogpt",
-        "wandb_run_name": "baseline"
+        "wandb_run_name": "rotary"
     }
 }

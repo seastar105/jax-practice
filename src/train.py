@@ -191,7 +191,7 @@ def train(config: Config):
             val_dataloader = data_generator(
                 "data/finewebedu10B/finewebedu_val_*.bin", per_device_batch_size * num_devices, context_length
             )
-            val_steps = 100000000 // (per_device_batch_size * num_devices * context_length)
+            val_steps = train_config.val_tokens // (per_device_batch_size * num_devices * context_length)
             val_losses = []
             for _ in tqdm(range(val_steps), desc="Validation", leave=False):
                 inputs, targets = next(val_dataloader)
